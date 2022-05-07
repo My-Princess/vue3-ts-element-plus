@@ -23,10 +23,11 @@
         </div>
         <!-- 右 -->
         <div class="flex w-full h-full py-5 xl:h-auto xl:py-0 xl:w-6/12">
-          <div class="vtvp-login-form relative w-full px-5 py-8 mx-auto my-auto my-auto rounded-md shadow-md xl:ml-16 xl:bg-transparent sm:px-8 xl:p-4 xl:shadow-none sm:w-3/4 lg:w-2/4 xl:w-auto enter-x">
+          <div
+            class="vtvp-login-form relative w-full px-5 py-8 mx-auto my-auto my-auto rounded-md shadow-md xl:ml-16 xl:bg-transparent sm:px-8 xl:p-4 xl:shadow-none sm:w-3/4 lg:w-2/4 xl:w-auto enter-x"
+          >
             <LoginForm />
           </div>
-          <Files :before-upload="beforeUpload" :on-success="handleSuccess"/>
         </div>
       </div>
     </div>
@@ -34,135 +35,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
-import { ElMessage } from "element-plus";
+import { ref, reactive } from "vue";
 import AppLogo from "@/components/AppLogo/AppLogo.vue";
 import LoginForm from "./components/LoginForm.vue";
-import Files from "./components/file.vue";
-let fileData = ref(null);
 
-const beforeUpload = (file: any) => {
-  const isLt1M = file.size / 1024 / 1024 < 100;
-  if (isLt1M) {
-    fileData.value = file;
-    return true;
-  } else {
-    ElMessage({
-      message: "上传文件太大,不能超过100M",
-      type: "warning",
-    });
-    return false;
-  }
-}
-
-const handleSuccess = (data)=> {
-      this.importTableData = []
-      this.exportBtnFag = true
-      this.tableData.loading = true
-      const filterVal = [
-        'clientMarkName',
-        'contactor',
-        'contactphone',
-        'contactphone2',
-        'contactphone3',
-        'hdStDate',
-        'hdEdDate',
-        'substName',
-        'branchName',
-        'areaName',
-        'gridName',
-        'connectno',
-        'mainCommendName',
-        'mainCommendIntro',
-        'mainCommendType',
-        'scCommendName',
-        'scCommendIntro',
-        'scCommendType',
-        'dsCommendName',
-        'dsCommendIntro',
-        'dsCommendType',
-        'orderHandlerName',
-        'isCheckConnectno',
-        'remarks'
-      ]
-
-      const filterKey = [
-        '客户名称',
-        '联系人',
-        '联系电话',
-        '联系电话2',
-        '联系电话3',
-        '开始时间',
-        '结束时间',
-        '区县',
-        '营服中心',
-        '片区',
-        '网格单元',
-        '接入号(政企、拆机和异网号码非必填)',
-        '主推名称',
-        '主推推荐简介',
-        '主推类型',
-        '次推名称',
-        '次推推荐简介',
-        '次推类型',
-        '顺销名称',
-        '顺销推荐简介',
-        '顺销类型',
-        '工单处理人账号',
-        '是否校验接入号（必填）',
-        '备注'
-      ]
-      var list = []
-      var dataSlice = []
-      if (data.header[0] !== '字段名称') {
-        list = this.formatExcel(filterVal, filterKey, data.results)
-      } else {
-        dataSlice = data.results.slice(1)
-        let fag = false
-        let count = 0
-        if (dataSlice.length >= 2) {
-          for (let i = 0; i < 2; i++) {
-            for (let k = 0; k < filterKey.length; k++) {
-              if (
-                dataSlice[i][filterKey[k]] !== undefined &&
-                dataSlice[i][filterKey[k]] != null
-              ) {
-                fag = true
-              }
-            }
-            if (!fag) {
-              count++
-            }
-          }
-          if (count > 0) {
-            for (let i = 0; i < count; i++) {
-              dataSlice.shift()
-            }
-          }
-        }
-        debugger
-        list = this.formatExcel(filterVal, filterKey, dataSlice)
-
-        console.log(list)
-      }
-      if (list.length < 1) {
-        this.tableData.loading = false
-        this.exportBtnFag = true
-        this.importTableData = []
-        this.$message.warning('导入的文件没有数据！')
-        return
-      } else {
-        this.exportBtnFag = false
-      }
-      this.importTableData = list
-      for (const index in this.importTableData) {
-        this.importTableData[index].hdEdDate = moment(this.importTableData[index].hdEdDate).format('YYYY-MM-DD')
-        this.importTableData[index].hdStDate = moment(this.importTableData[index].hdStDate).format('YYYY-MM-DD')
-      }
-      console.log(list)
-      // 校验导入数据
-      this.checkImprotInfo(list)
-}
 </script>
 <style lang="less">
 @prefix-cls: ~"@{namespace}-login";
