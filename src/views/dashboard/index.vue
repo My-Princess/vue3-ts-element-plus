@@ -1,5 +1,5 @@
 <template>
-<div>嘻嘻</div>
+<div>嘻嘻  主页</div>
 </template>
 
 <script lang='ts'>

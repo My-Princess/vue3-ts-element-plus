@@ -56,7 +56,6 @@
 
     <el-divider class="enter-x">其他登录方式</el-divider>
 
-    
     <div class="flex justify-evenly enter-x">
       <GithubFilled />
       <WechatFilled />
@@ -69,23 +68,55 @@
 
 <script lang="ts" setup>
 import LoginFormTitle from "./LoginFormTitle.vue";
-import { reactive, ref } from "vue";
+import { reactive, ref, watch } from "vue";
+import { useRouter,LocationQuery, useRoute } from "vue-router";
+import { useStore } from "@/store";
+import { UserActionTypes } from "@/store/interface/action-types";
 import type { FormInstance } from "element-plus";
-  import {
-    GithubFilled,
-    WechatFilled,
-    AlipayCircleFilled,
-    GoogleCircleFilled,
-    TwitterCircleFilled,
-  } from '@ant-design/icons-vue';
-
+import {
+  GithubFilled,
+  WechatFilled,
+  AlipayCircleFilled,
+  GoogleCircleFilled,
+  TwitterCircleFilled,
+} from "@ant-design/icons-vue";
+const router = useRouter();
+const route = useRoute();
+const store = useStore();
 const ruleFormRef = ref<FormInstance>();
-const ruleForm = reactive({
-  username: "",
-  password: "",
-});
 const rememberMe = ref(false);
 const loading = ref(false);
+const ruleForm = reactive({
+  username: "admin",
+  password: "admin",
+});
+const state = reactive({
+  redirect: "",
+  otherQuery: {},
+});
+
+// watch(
+//   () => route.query,
+//   (query) => {
+//     console.log('qqq',query)
+//     if (query) {
+//       state.redirect = query.redirect?.toString() ?? "";
+//       console.log('重定向',state.redirect)
+//       state.otherQuery = getOtherQuery(query);
+//     }
+//   }
+// );
+watch(
+  () => route.query,
+  (query) => {
+    console.log("2222", query);
+    if (query) {
+      state.redirect = query.redirect?.toString() ?? "";
+      state.otherQuery = getOtherQuery(query);
+    }
+  },
+  { immediate: true }
+);
 
 const validateUsername = (rule: any, value: any, callback: any) => {
   if (value === "") {
@@ -101,8 +132,8 @@ const validateUsername = (rule: any, value: any, callback: any) => {
   }
 };
 const validatePassWord = (rule: any, value: any, callback: any) => {
-  if (value === "") {
-    callback(new Error("请输入密码"));
+  if (value === "" && value.length < 5) {
+    callback(new Error("请输入密码不小于六位数"));
   } else {
     callback();
   }
@@ -115,13 +146,27 @@ const rules = reactive({
 
 const submitForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return;
-  formEl.validate((valid) => {
+  formEl.validate(async (valid) => {
     if (valid) {
       console.log("submit!", ruleForm);
+       store.dispatch(UserActionTypes.ACTION_LOGIN, ruleForm);
+      router.push({
+        path: state.redirect || "/",
+        query: state.otherQuery,
+      });
     } else {
       console.log("error submit!");
       return false;
     }
   });
 };
+
+function getOtherQuery(query: LocationQuery) {
+  return Object.keys(query).reduce((acc, cur) => {
+    if (cur !== "redirect") {
+      acc[cur] = query[cur];
+    }
+    return acc;
+  }, {} as LocationQuery);
+}
 </script>

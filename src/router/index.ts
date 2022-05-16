@@ -9,16 +9,26 @@ Object.keys(constantFiles).forEach((key) => {
   constantModules = constantModules.concat(constantFiles[key]?.default)
 })
 
-const routes = [
+
+// 引入异步路由
+const asyncFiles = import.meta.globEager("./permissionModules/*.ts")
+let permissionModules: Array<RouteRecordRaw> = [] 
+Object.keys(asyncFiles).forEach((key) => {
+  if (key === './permissionModules/index.ts') return
+  permissionModules = permissionModules.concat(asyncFiles[key]?.default)
+})
+
+
+
+export const constantRoutes:Array<RouteRecordRaw> = [
     {
-        name: '/redirect',
-        path: '/',
+        path: '/redirect',
         component: Layout,
         meta: {hidden: true},
         children: [
             {
                 path: '/redirect/:path(.*)',
-                component: () => import(/* webpackChunkName: "redirect" */ '@/views/redirect/Index.vue')
+                component: () => import(/* webpackChunkName: "redirect" */ '@/views/redirect/index.vue')
               }
         ]
     },
@@ -33,16 +43,34 @@ const routes = [
             name: 'Dashboard',
             meta: {
               title: 'dashboard',
-              affix: true
+              // 判断是否是白名单 true(不是)
+              affix: true,
+              
             }
           }
         ]
     },
     ...constantModules
 ]
+
+export const asyncRoutes:Array<RouteRecordRaw> = [
+  ...permissionModules
+]
+
+
 const router = createRouter({
     history: createWebHashHistory(),
-    routes
+    routes: constantRoutes
 })
+
+// 删除/重置路由
+export function resetRoute(): void{
+   router.getRoutes().forEach((route)=>{
+     const {name} = route
+     if(name){
+       router.hasRoute(name) && router.removeRoute(name)
+     }
+   })
+}
 
 export default router

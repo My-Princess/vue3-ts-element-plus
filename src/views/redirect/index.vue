@@ -7,6 +7,7 @@ export default defineComponent({
   created() {
     const { params, query } = useRoute();
     const { path } = params;
+    console.log("params嘀嘀嘀",params)
     useRouter()
       .replace({ path: "/" + path, query })
       .catch((err:any) => {
